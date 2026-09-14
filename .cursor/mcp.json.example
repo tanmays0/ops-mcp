@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ops-mcp": {
+      "command": "uv",
+      "args": ["run", "--directory", "/ABS/PATH/TO/ops-mcp", "python", "-m", "ops_mcp"],
+      "env": {
+        "OPS_MCP_FS_ROOTS": "/ABS/PATH/TO/ops-mcp/fixtures/fs_sandbox",
+        "OPS_MCP_DATABASE_URL": "postgresql://opsmcp:opsmcp@localhost:5432/opsmcp"
+      }
+    }
+  }
+}

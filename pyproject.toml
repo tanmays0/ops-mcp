@@ -1,0 +1,35 @@
+[project]
+name = "ops-mcp"
+version = "0.1.0"
+description = "Typed MCP server for sandboxed agent ops (GitHub, Postgres, deploys, filesystem)"
+authors = [
+    { name = "Tanmay Shinde", email = "shinde.tanmay@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=4.0.3",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.3.5",
+    "pydantic-settings>=2.15.0",
+    "sqlglot>=30.18.0",
+]
+
+[project.scripts]
+ops-mcp = "ops_mcp.server:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "postgres: requires local Compose Postgres (OPS_MCP_DATABASE_URL)",
+]
