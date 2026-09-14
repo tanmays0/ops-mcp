@@ -41,7 +41,6 @@ def postgres_query_readonly(
     started = time.perf_counter()
     cfg = _settings_or_default(settings)
     try:
-        # Fail closed before connect (tests assert this ordering).
         assert_select_only(sql)
         client = PostgresClient(_dsn(cfg))
         limit = max_rows if max_rows is not None else cfg.postgres_max_rows

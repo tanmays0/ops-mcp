@@ -52,7 +52,6 @@ def resolve_under_roots(user_path: str | Path, roots: list[Path]) -> Path:
         raise PathSandboxError("outside allowlist")
 
     resolved_roots = validate_roots(roots)
-    # Resolve relative to CWD then check membership; never trust string prefixes.
     resolved = Path(text).resolve()
 
     for root in resolved_roots:

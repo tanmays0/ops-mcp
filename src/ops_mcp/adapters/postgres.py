@@ -62,7 +62,6 @@ class PostgresClient:
     ) -> dict[str, Any]:
         """Run EXPLAIN (FORMAT TEXT) for a guarded SELECT (no ANALYZE)."""
         assert_select_only(sql)
-        # Prefix after validation only; params still bind to the inner SELECT.
         explain_sql = f"EXPLAIN (FORMAT TEXT) {sql}"
         with self._connect() as conn:
             with conn.cursor() as cur:

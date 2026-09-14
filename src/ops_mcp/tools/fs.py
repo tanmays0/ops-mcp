@@ -73,7 +73,6 @@ def fs_search(
                     break
                 if not path.is_file():
                     continue
-                # Re-check after walk in case of races / odd links.
                 try:
                     safe_path = resolve_under_roots(path, roots)
                 except PathSandboxError:

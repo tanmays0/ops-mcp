@@ -1,43 +1,38 @@
-# OpsMCP demo script (2–3 minutes)
+# Verification flows
 
-Record this in Cursor with the `ops-mcp` MCP server connected and
-`docker compose up -d` running. Use a public demo repo you own (example:
-`tanmays0/admax-india`).
+Prerequisite: `docker compose up -d`, `.env` configured, MCP server process running
+(`uv run python -m ops_mcp` or client-launched stdio).
 
-## Setup (before recording)
+## Flow A — Filesystem
 
-1. `.env` has `OPS_MCP_GITHUB_TOKEN` and `OPS_MCP_DATABASE_URL`
-2. Cursor shows all 8 tools under **ops-mcp**
-3. Postgres healthy: `docker compose ps`
+| Step | Tool | Input | Expected output |
+|------|------|-------|-----------------|
+| 1 | `fs_search` | `query=hello sandbox` | Hits under allowlisted roots only |
+| 2 | `fs_read_file` | path from a hit | File content, `encoding=utf-8` |
+| 3 | `fs_read_file` | path outside allowlist | Error: outside allowlist |
 
-## Script (say / type these)
+## Flow B — Postgres
 
-1. **GitHub read**  
-   “Using ops-mcp, list open issues/PRs in `OWNER/REPO`.”
+| Step | Tool | Input | Expected output |
+|------|------|-------|-----------------|
+| 1 | `postgres_query_readonly` | `SELECT email FROM users ORDER BY id` | Seeded emails |
+| 2 | `postgres_query_readonly` | `SELECT COUNT(*) AS n FROM orders WHERE status = %s` params `["paid"]` | Count row |
+| 3 | `postgres_explain` | same SELECT as step 2 | Plan text; table row counts unchanged |
+| 4 | `postgres_query_readonly` | `DROP TABLE users` | Rejected before DB connect |
 
-2. **Filesystem**  
-   “Search the sandbox for `hello sandbox` and read the matching file.”
+## Flow C — GitHub and deploy
 
-3. **Postgres**  
-   “How many paid orders are in the demo DB? Use `postgres_query_readonly`.”  
-   Optional: “`EXPLAIN` that query without executing it.”
+| Step | Tool | Input | Expected output |
+|------|------|-------|-----------------|
+| 1 | `github_list_issues` | `owner`, `repo`, `state=open` | Issue/PR summaries |
+| 2 | `github_pr_diff_summary` | `owner`, `repo`, `pull_number` | File stats; no `patch` fields |
+| 3 | `deploy_status` | `owner`, `repo`, `branch=main` | Latest run `status` / `conclusion` or `run=null` |
+| 4 | `github_create_issue` | title/body with default dry-run | `{dry_run: true, would_create: ...}` ; no remote create |
 
-4. **Deploy status**  
-   “Is `main`’s latest GitHub Actions run green for `OWNER/REPO`?”
+## Automated proof
 
-5. **Safe write**  
-   “Draft a GitHub issue summarizing what you found — dry-run only.”  
-   (Confirm the tool returns `dry_run: true` and does **not** create anything.)
+```bash
+uv run pytest
+```
 
-## What interviewers should notice
-
-- Credentials never appear in tool output
-- Path/SQL attacks fail closed (optional live: ask to `DROP TABLE` or read `/etc/passwd`)
-- Writes default to dry-run
-- One agent session chains four real systems through typed tools
-
-## Resume one-liner
-
-Built a production-style MCP server (Python/FastMCP) exposing 8 typed tools for
-GitHub, Postgres read models, deploy status, and secure file search — with auth,
-structured errors, Docker, and Cursor agent demos.
+CI on `main`: GitHub Actions workflow `ci` (Postgres service + pytest).

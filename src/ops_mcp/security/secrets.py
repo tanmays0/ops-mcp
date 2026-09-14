@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# GitHub PATs, Bearer headers, and common env-style assignments.
 _PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"ghp_[A-Za-z0-9_]{20,}"),
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),

@@ -9,7 +9,6 @@ from typing import Annotated
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-# repo root: src/ops_mcp/config.py → ../../
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _ENV_FILE = _REPO_ROOT / ".env"
 
@@ -29,7 +28,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # NoDecode: env value is colon-separated paths, not JSON.
     fs_roots: Annotated[list[Path], NoDecode] = Field(default_factory=list)
     fs_max_read_bytes: int = 65_536
     log_level: str = "INFO"

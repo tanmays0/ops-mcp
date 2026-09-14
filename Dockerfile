@@ -1,4 +1,4 @@
-# OpsMCP stdio server image (remote/demo). For local Cursor, prefer `uv run`.
+# OpsMCP stdio server image.
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -15,5 +15,4 @@ RUN uv sync --frozen --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-# Secrets (OPS_MCP_GITHUB_TOKEN, OPS_MCP_DATABASE_URL, OPS_MCP_FS_ROOTS) via runtime env.
 CMD ["uv", "run", "python", "-m", "ops_mcp"]

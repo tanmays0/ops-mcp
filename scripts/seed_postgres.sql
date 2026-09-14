@@ -1,4 +1,3 @@
--- OpsMCP local demo seed (throwaway Compose Postgres)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,

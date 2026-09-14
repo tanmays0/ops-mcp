@@ -62,7 +62,6 @@ class GitHubClient:
 
     def _handle(self, response: httpx.Response) -> Any:
         if response.status_code >= 400:
-            # Do not include response headers (may echo auth); keep body short.
             detail = response.text[:300]
             raise GitHubAPIError(
                 f"GitHub API error {response.status_code}: {detail}"
@@ -92,7 +91,6 @@ class GitHubClient:
         )
         payload = self._handle(response)
         assert isinstance(payload, list)
-        # GitHub includes PRs in /issues; keep them but mark pull_request.
         return [
             {
                 "number": item["number"],
@@ -158,7 +156,6 @@ class GitHubClient:
                 "additions": item.get("additions"),
                 "deletions": item.get("deletions"),
                 "changes": item.get("changes"),
-                # Intentionally omit patch / full contents.
             }
             for item in files
         ]
