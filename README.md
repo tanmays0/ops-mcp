@@ -5,7 +5,6 @@ agent can operate GitHub, Postgres, deploy status, and a sandboxed local
 filesystem. Credentials stay in the server process; tool inputs are treated as
 untrusted.
 
-**Repository:** https://github.com/tanmays0/ops-mcp
 
 ## Output
 
