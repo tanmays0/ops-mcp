@@ -6,9 +6,7 @@ filesystem. Credentials stay in the server process; tool inputs are treated as
 untrusted.
 
 **Repository:** https://github.com/tanmays0/ops-mcp  
-**Control plane (GitHub Pages):** https://tanmays0.github.io/ops-mcp/
-
-## Output
+**Control plane:** https://tanmays0.github.io/ops-mcp/
 
 | Artifact | Location |
 |----------|----------|
