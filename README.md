@@ -64,12 +64,11 @@ cd ops-mcp
 uv sync
 docker compose up -d
 cp .env.example .env
-# set OPS_MCP_FS_ROOTS, OPS_MCP_DATABASE_URL, OPS_MCP_GITHUB_TOKEN in .env
 uv run pytest
 uv run python -m ops_mcp
 ```
 
-MCP client config: copy `.cursor/mcp.json.example` to `.cursor/mcp.json` and set absolute paths. Load secrets from `.env` only (`.env` and `.cursor/mcp.json` are gitignored).
+Populate `.env` from `.env.example` (`OPS_MCP_FS_ROOTS`, `OPS_MCP_DATABASE_URL`, `OPS_MCP_GITHUB_TOKEN`). MCP client config: copy `.cursor/mcp.json.example` to `.cursor/mcp.json` with absolute paths. Secrets load from `.env` only (`.env` and `.cursor/mcp.json` are gitignored).
 
 ## Configuration
 
