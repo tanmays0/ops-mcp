@@ -4,9 +4,7 @@
 other AI agents safely operate real systems: GitHub, Postgres, deploys, and a
 sandboxed filesystem.
 
-> Resume bullet: Built a production-style MCP server (Python/FastMCP) exposing
-> 8 typed tools for GitHub, Postgres read models, deploy status, and secure
-> file search — with auth, structured errors, Docker, and Cursor agent demos.
+
 
 ## Why this project
 
