@@ -6,7 +6,6 @@ filesystem. Credentials stay in the server process; tool inputs are treated as
 untrusted.
 
 
-## Output
 
 | Artifact | Location |
 |----------|----------|
