@@ -1,9 +1,10 @@
 <!--
 Sync Impact Report
-- Version change: (none) → 1.0.0
-- Modified principles: template placeholders → OpsMCP principles I–VI
-- Added sections: Quality Bar; Threat Model & Documentation
-- Removed sections: none (replaced scaffold)
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: VI — allow static companion control plane (v1.1);
+  still forbid multi-tenant OAuth dashboards and live public secret backends
+- Added sections: none
+- Removed sections: none
 - Follow-up TODOs: none
 -->
 # OpsMCP Constitution
@@ -37,10 +38,16 @@ emission paths.
 Every tool call MUST emit a structured JSON log with latency and ok/err
 status. Print-debugging MUST NOT ship in the server.
 
-### VI. Minimal v1 Scope
-Exactly the eight tools in the product specification ship in v1. OAuth UI,
-a multi-tenant dashboard, write-heavy database tools, and Kubernetes
-controllers are explicitly out of scope and deferred to v2.
+### VI. Minimal Core + Optional Companion UI
+Exactly the eight tools in the product specification ship in the MCP core.
+OAuth multi-tenant dashboards, write-heavy database tools, and Kubernetes
+controllers remain out of scope for the core server.
+
+A **static companion control plane** (docs, tool catalog, Cursor setup,
+simulated playground, sample observability) MAY ship as v1.1+ for portfolio
+demo on a free static host (e.g. GitHub Pages). The companion MUST NOT
+replace stdio MCP, MUST NOT collect visitor secrets, MUST NOT weaken core
+guardrail semantics, and MUST NOT claim live multi-tenant operations.
 
 ## Quality Bar
 
@@ -67,4 +74,4 @@ review against existing specs. All PRs and reviews MUST verify compliance
 with principles I–VI and the quality bar. Complexity that weakens a
 fail-closed guardrail is rejected by default.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-11 | **Last Amended**: 2026-09-11
+**Version**: 1.1.0 | **Ratified**: 2026-09-11 | **Last Amended**: 2026-09-15

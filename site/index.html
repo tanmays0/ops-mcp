@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpsMCP — Control Plane</title>
+    <meta
+      name="description"
+      content="Companion control plane for OpsMCP: eight typed MCP tools, Cursor setup, simulated playground, and sample observability."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <header class="top">
+      <a class="brand" href="#top">OpsMCP</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#catalog">Tools</a>
+        <a href="#setup">Setup</a>
+        <a href="#playground">Playground</a>
+        <a href="#observability">Logs</a>
+        <a class="nav-ext" href="https://github.com/tanmays0/ops-mcp" rel="noopener">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Companion control plane · v1.1</p>
+        <h1 class="logo-mark">OpsMCP</h1>
+        <p class="lede">
+          A gated MCP server between an AI agent and real systems — GitHub,
+          Postgres, deploy status, and a sandboxed filesystem.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="#catalog">Explore eight tools</a>
+          <a class="btn ghost" href="#setup">Cursor setup</a>
+        </div>
+        <p class="boundary">
+          This site is docs + demo. The real server runs locally over
+          <strong>MCP stdio</strong> — credentials never live here.
+        </p>
+      </section>
+
+      <section class="flow" aria-label="Architecture">
+        <div class="flow-track">
+          <span>Agent / Cursor</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span>MCP stdio</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span>FastMCP</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span>Security</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span>Adapters</span>
+          <span class="arrow" aria-hidden="true">→</span>
+          <span>Systems</span>
+        </div>
+      </section>
+
+      <section id="catalog" class="section">
+        <header class="section-head">
+          <h2>Tool catalog</h2>
+          <p>Exact eight capabilities the local MCP server registers.</p>
+        </header>
+        <div class="filters" id="system-filters" role="tablist" aria-label="Filter by system"></div>
+        <div id="tool-list" class="tool-list"></div>
+      </section>
+
+      <section id="setup" class="section">
+        <header class="section-head">
+          <h2>Cursor setup</h2>
+          <p>Wire the local stdio server. Secrets stay in <code>.env</code> on your machine.</p>
+        </header>
+        <ol class="steps">
+          <li>Clone <code>tanmays0/ops-mcp</code> and run <code>uv sync</code></li>
+          <li>Copy <code>.env.example</code> → <code>.env</code> (token, DSN, FS roots)</li>
+          <li>Optional: <code>docker compose up -d</code> for the seeded Postgres demo</li>
+          <li>Launch: <code>uv run python -m ops_mcp</code> (or let Cursor spawn it)</li>
+          <li>Point Cursor at the config below — replace absolute paths</li>
+        </ol>
+        <div class="warn" role="note">
+          Never paste GitHub tokens or database URLs into this public site.
+          Load them only from local environment files.
+        </div>
+        <div class="code-panel">
+          <div class="code-bar">
+            <span>.cursor/mcp.json</span>
+            <button type="button" class="btn tiny" id="copy-setup">Copy</button>
+          </div>
+          <pre id="setup-code" class="code" tabindex="0"></pre>
+        </div>
+      </section>
+
+      <section id="playground" class="section">
+        <header class="section-head">
+          <h2>Try tool <span class="badge sim">Simulated</span></h2>
+          <p>
+            Browser-only demos of dry-run writes and fail-closed refusals.
+            No calls to GitHub or Postgres from this page.
+          </p>
+        </header>
+        <div class="play-layout">
+          <div class="play-list" id="scenario-list" role="listbox" aria-label="Scenarios"></div>
+          <div class="play-stage">
+            <div class="play-meta">
+              <h3 id="scenario-title">Select a scenario</h3>
+              <p id="scenario-blurb" class="muted"></p>
+            </div>
+            <label class="field-label" for="scenario-inputs">Inputs</label>
+            <pre id="scenario-inputs" class="code compact"></pre>
+            <button type="button" class="btn primary" id="run-scenario" disabled>Run simulation</button>
+            <div id="sim-banner" class="sim-banner hidden" role="status">Simulated result — not a live MCP call</div>
+            <pre id="scenario-result" class="code result hidden"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="observability" class="section">
+        <header class="section-head">
+          <h2>Observability</h2>
+          <p id="events-caption" class="muted"></p>
+        </header>
+        <div class="health">
+          <span class="pulse" aria-hidden="true"></span>
+          <div>
+            <strong>Companion site</strong>
+            <span class="muted"> — static assets reachable (not local MCP process health)</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="events" id="events-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Tool</th>
+                <th>OK</th>
+                <th>Latency</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div>
+        <strong>OpsMCP</strong>
+        <span class="muted"> · Python / FastMCP · fail-closed by default</span>
+      </div>
+      <a href="https://github.com/tanmays0/ops-mcp">github.com/tanmays0/ops-mcp</a>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

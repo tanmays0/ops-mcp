@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "name": "github_list_issues",
+      "system": "github",
+      "summary": "List issues and PRs for a repository by state and labels.",
+      "inputs": [
+        {"name": "owner", "type": "string", "required": true, "description": "GitHub org or user"},
+        {"name": "repo", "type": "string", "required": true, "description": "Repository name"},
+        {"name": "state", "type": "string", "required": false, "default": "open", "description": "open | closed | all"},
+        {"name": "labels", "type": "string", "required": false, "description": "Comma-separated labels"},
+        {"name": "per_page", "type": "integer", "required": false, "default": 30, "description": "Page size"}
+      ],
+      "outputs": "{ issues: [{ number, title, state, labels, is_pull_request, html_url }] }",
+      "safety": ["Requires OPS_MCP_GITHUB_TOKEN in the local server", "Token never returned in payloads", "Outbound HTTP rate-limited"]
+    },
+    {
+      "name": "github_create_issue",
+      "system": "github",
+      "summary": "Create a GitHub issue. Defaults to dry_run so nothing is written remotely.",
+      "inputs": [
+        {"name": "owner", "type": "string", "required": true},
+        {"name": "repo", "type": "string", "required": true},
+        {"name": "title", "type": "string", "required": true},
+        {"name": "body", "type": "string", "required": false},
+        {"name": "labels", "type": "string[]", "required": false},
+        {"name": "dry_run", "type": "boolean", "required": false, "default": true, "description": "When true, returns would_create only"}
+      ],
+      "outputs": "dry_run: { dry_run: true, would_create } | write: { dry_run: false, issue }",
+      "safety": ["dry_run defaults to true", "No remote POST unless dry_run=false", "Never returns credentials"]
+    },
+    {
+      "name": "github_pr_diff_summary",
+      "system": "github",
+      "summary": "Summarize a pull request’s changed files and diff stats.",
+      "inputs": [
+        {"name": "owner", "type": "string", "required": true},
+        {"name": "repo", "type": "string", "required": true},
+        {"name": "pull_number", "type": "integer", "required": true}
+      ],
+      "outputs": "PR metadata + files[{ filename, status, additions, deletions, changes }]",
+      "safety": ["Does not return raw patches", "Token never returned"]
+    },
+    {
+      "name": "postgres_query_readonly",
+      "system": "postgres",
+      "summary": "Run a parameterized SELECT (or WITH…SELECT) against Postgres.",
+      "inputs": [
+        {"name": "sql", "type": "string", "required": true, "description": "Single SELECT / CTE"},
+        {"name": "params", "type": "array", "required": false, "description": "Bound parameters"},
+        {"name": "max_rows", "type": "integer", "required": false, "description": "Cap (default 500)"}
+      ],
+      "outputs": "{ columns, rows, row_count, truncated }",
+      "safety": ["sqlglot AST allowlist before connect", "DDL/DML and multi-statement rejected", "Parameterized values", "DSN never returned"]
+    },
+    {
+      "name": "postgres_explain",
+      "system": "postgres",
+      "summary": "EXPLAIN (FORMAT TEXT) a SELECT without ANALYZE.",
+      "inputs": [
+        {"name": "sql", "type": "string", "required": true},
+        {"name": "params", "type": "array", "required": false}
+      ],
+      "outputs": "{ plan: string }",
+      "safety": ["No ANALYZE — query is not executed for timings", "Same SELECT-only gate as query tool"]
+    },
+    {
+      "name": "deploy_status",
+      "system": "deploy",
+      "summary": "Latest GitHub Actions workflow run for a branch.",
+      "inputs": [
+        {"name": "owner", "type": "string", "required": true},
+        {"name": "repo", "type": "string", "required": true},
+        {"name": "branch", "type": "string", "required": false, "default": "main"}
+      ],
+      "outputs": "{ branch, run: null | { status, conclusion, … } }",
+      "safety": ["Read-only Actions metadata", "Token never returned"]
+    },
+    {
+      "name": "fs_search",
+      "system": "filesystem",
+      "summary": "Literal substring search under allowlisted filesystem roots.",
+      "inputs": [
+        {"name": "query", "type": "string", "required": true},
+        {"name": "root", "type": "string", "required": false, "description": "Optional root within allowlist"},
+        {"name": "max_results", "type": "integer", "required": false, "default": 50}
+      ],
+      "outputs": "{ hits: [{ path, line, text }] }",
+      "safety": ["Resolve-then-compare path sandbox", "Hits only under OPS_MCP_FS_ROOTS", "Binary files skipped"]
+    },
+    {
+      "name": "fs_read_file",
+      "system": "filesystem",
+      "summary": "Read a file under the sandbox with a hard size limit.",
+      "inputs": [
+        {"name": "path", "type": "string", "required": true},
+        {"name": "max_bytes", "type": "integer", "required": false, "description": "Capped by server max"}
+      ],
+      "outputs": "{ path, size, truncated, content, encoding }",
+      "safety": ["Symlink and .. escapes fail closed", "Default max read 64 KiB", "~ paths rejected"]
+    }
+  ]
+}

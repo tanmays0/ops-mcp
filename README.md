@@ -5,7 +5,8 @@ agent can operate GitHub, Postgres, deploy status, and a sandboxed local
 filesystem. Credentials stay in the server process; tool inputs are treated as
 untrusted.
 
-**Repository:** https://github.com/tanmays0/ops-mcp
+**Repository:** https://github.com/tanmays0/ops-mcp  
+**Control plane (GitHub Pages):** https://tanmays0.github.io/ops-mcp/
 
 ## Output
 
@@ -13,9 +14,11 @@ untrusted.
 |----------|----------|
 | MCP server (stdio) | `uv run python -m ops_mcp` |
 | Eight tools | registered in `src/ops_mcp/server.py` |
+| Companion UI | `site/` → GitHub Pages (catalog, setup, simulated playground) |
 | Seeded demo database | `docker compose up -d` → Postgres `users` / `orders` / `products` |
 | Automated tests | `uv run pytest` (path sandbox, SQL guard, GitHub mocks, Postgres) |
 | CI | GitHub Actions workflow `.github/workflows/ci.yml` |
+| Pages deploy | `.github/workflows/pages.yml` |
 | Container image | `Dockerfile` |
 | Agent wiring example | `.cursor/mcp.json.example` |
 

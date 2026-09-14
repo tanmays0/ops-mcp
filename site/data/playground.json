@@ -1,0 +1,80 @@
+{
+  "scenarios": [
+    {
+      "id": "create-issue-dry",
+      "tool": "github_create_issue",
+      "title": "Create issue (dry-run)",
+      "kind": "dry_run",
+      "blurb": "Writes default to dry_run=true — preview only, no GitHub POST.",
+      "inputs": {
+        "owner": "tanmays0",
+        "repo": "ops-mcp",
+        "title": "Demo: rate limiter edge case",
+        "body": "Found during agent triage. Simulated.",
+        "dry_run": true
+      },
+      "result": {
+        "dry_run": true,
+        "would_create": {
+          "owner": "tanmays0",
+          "repo": "ops-mcp",
+          "title": "Demo: rate limiter edge case",
+          "body": "Found during agent triage. Simulated.",
+          "labels": []
+        }
+      }
+    },
+    {
+      "id": "select-ok",
+      "tool": "postgres_query_readonly",
+      "title": "Readonly SELECT",
+      "kind": "success_sim",
+      "blurb": "Parameterized SELECT after AST allowlist — simulated rows.",
+      "inputs": {
+        "sql": "SELECT email FROM users ORDER BY id LIMIT 3",
+        "params": []
+      },
+      "result": {
+        "columns": ["email"],
+        "rows": [
+          {"email": "alice@example.com"},
+          {"email": "bob@example.com"},
+          {"email": "carol@example.com"}
+        ],
+        "row_count": 3,
+        "truncated": false
+      }
+    },
+    {
+      "id": "drop-refuse",
+      "tool": "postgres_query_readonly",
+      "title": "Reject DROP TABLE",
+      "kind": "refusal",
+      "blurb": "DDL is rejected by sqlglot before any database connection.",
+      "inputs": {
+        "sql": "DROP TABLE orders;",
+        "params": []
+      },
+      "result": {
+        "ok": false,
+        "error": "SqlGuardError",
+        "message": "Only a single SELECT (or WITH…SELECT) is allowed. DDL/DML and multi-statement SQL are rejected before connect."
+      }
+    },
+    {
+      "id": "path-refuse",
+      "tool": "fs_read_file",
+      "title": "Reject path escape",
+      "kind": "refusal",
+      "blurb": "Resolve-then-compare sandbox blocks .. and symlink escapes.",
+      "inputs": {
+        "path": "../../../etc/passwd"
+      },
+      "result": {
+        "ok": false,
+        "error": "PathSandboxError",
+        "message": "Path resolves outside allowlisted roots (fail closed)."
+      }
+    }
+  ]
+}

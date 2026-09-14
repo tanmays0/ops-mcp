@@ -1,0 +1,13 @@
+{
+  "caption": "Illustrative sample events shaped like OpsMCP structured tool logs (tool, ok, latency_ms). Not a live feed from a laptop MCP process.",
+  "events": [
+    {"ts": "2026-09-15T10:02:11Z", "tool": "fs_search", "ok": true, "latency_ms": 12, "error": null},
+    {"ts": "2026-09-15T10:02:14Z", "tool": "fs_read_file", "ok": true, "latency_ms": 4, "error": null},
+    {"ts": "2026-09-15T10:02:22Z", "tool": "postgres_query_readonly", "ok": true, "latency_ms": 18, "error": null},
+    {"ts": "2026-09-15T10:02:25Z", "tool": "postgres_query_readonly", "ok": false, "latency_ms": 1, "error": "SqlGuardError"},
+    {"ts": "2026-09-15T10:02:40Z", "tool": "github_list_issues", "ok": true, "latency_ms": 210, "error": null},
+    {"ts": "2026-09-15T10:02:55Z", "tool": "github_create_issue", "ok": true, "latency_ms": 2, "error": null},
+    {"ts": "2026-09-15T10:03:01Z", "tool": "deploy_status", "ok": true, "latency_ms": 180, "error": null},
+    {"ts": "2026-09-15T10:03:08Z", "tool": "fs_read_file", "ok": false, "latency_ms": 1, "error": "PathSandboxError"}
+  ]
+}
