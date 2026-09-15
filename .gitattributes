@@ -1,0 +1,13 @@
+# Keep GitHub Linguist focused on product code (Python MCP + companion site).
+# Spec Kit tooling is process scaffolding, not the portfolio surface.
+
+.specify/** linguist-vendored
+.specify/scripts/** linguist-vendored
+*.sh linguist-vendored
+
+# Spec / planning markdown is documentation, not "code languages"
+specs/** linguist-documentation
+.specify/memory/** linguist-documentation
+.specify/templates/** linguist-documentation
+DEMO.md linguist-documentation
+OpsMCP-Interview-Master-Guide.md linguist-documentation
