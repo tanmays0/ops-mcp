@@ -5,8 +5,9 @@ agent can operate GitHub, Postgres, deploy status, and a sandboxed local
 filesystem. Credentials stay in the server process; tool inputs are treated as
 untrusted.
 
-**Repository:** https://github.com/tanmays0/ops-mcp  
-**Control plane:** https://tanmays0.github.io/ops-mcp/
+**Live:** https://tanmays0.github.io/ops-mcp/  
+**GitHub:** https://github.com/tanmays0/ops-mcp
+
 
 | Artifact | Location |
 |----------|----------|
