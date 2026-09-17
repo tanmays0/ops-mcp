@@ -1,0 +1,87 @@
+{
+  "demos": [
+    {
+      "id": "fs-traversal",
+      "tool": "fs_read_file",
+      "gate": "path_sandbox.resolve_under_roots",
+      "title": "Filesystem path traversal",
+      "blurb": "Resolve-then-compare after symlink resolution. Escapes fail closed.",
+      "request": {
+        "tool": "fs_read_file",
+        "arguments": { "path": "../../../etc/passwd" }
+      },
+      "outcome": "blocked",
+      "response": {
+        "error": "PathSandboxError",
+        "message": "outside allowlist"
+      },
+      "note": "Exact message from src/ops_mcp/security/path_sandbox.py — raised before any file open."
+    },
+    {
+      "id": "sql-drop",
+      "tool": "postgres_query_readonly",
+      "gate": "sql_guard.assert_select_only",
+      "title": "SQL DROP rejected pre-connect",
+      "blurb": "sqlglot AST allowlist. Non-SELECT roots never reach Postgres.",
+      "request": {
+        "tool": "postgres_query_readonly",
+        "arguments": { "sql": "DROP TABLE orders;", "params": [] }
+      },
+      "outcome": "blocked",
+      "response": {
+        "error": "SqlGuardError",
+        "message": "SQL rejected: not a SELECT"
+      },
+      "note": "Exact message from src/ops_mcp/security/sql_guard.py — guard runs before connect."
+    },
+    {
+      "id": "sql-multi",
+      "tool": "postgres_query_readonly",
+      "gate": "sql_guard.assert_select_only",
+      "title": "Multi-statement SQL smuggle",
+      "blurb": "Stacked statements are rejected even if the first looks like a SELECT.",
+      "request": {
+        "tool": "postgres_query_readonly",
+        "arguments": {
+          "sql": "SELECT 1; DROP TABLE orders;",
+          "params": []
+        }
+      },
+      "outcome": "blocked",
+      "response": {
+        "error": "SqlGuardError",
+        "message": "SQL rejected: multiple statements"
+      },
+      "note": "Exact message from src/ops_mcp/security/sql_guard.py."
+    },
+    {
+      "id": "github-dry-run",
+      "tool": "github_create_issue",
+      "gate": "github_create_issue dry_run=true (default)",
+      "title": "GitHub write intercepted by dry_run",
+      "blurb": "Default dry_run=true — no remote POST; preview only.",
+      "request": {
+        "tool": "github_create_issue",
+        "arguments": {
+          "owner": "tanmays0",
+          "repo": "ops-mcp",
+          "title": "Agent found a rate-limit edge case",
+          "body": "Sanitized demo payload.",
+          "dry_run": true
+        }
+      },
+      "outcome": "dry_run",
+      "response": {
+        "dry_run": true,
+        "would_create": {
+          "owner": "tanmays0",
+          "repo": "ops-mcp",
+          "title": "Agent found a rate-limit edge case",
+          "body": "Sanitized demo payload.",
+          "labels": []
+        }
+      },
+      "note": "Shape matches src/ops_mcp/tools/github.py when dry_run is true — HTTP create is skipped."
+    }
+  ]
+}

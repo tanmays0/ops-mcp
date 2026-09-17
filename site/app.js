@@ -1,6 +1,14 @@
 const SECRET_RE =
   /\b(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|postgresql:\/\/[^\s"']+|Bearer\s+[A-Za-z0-9._\-]+)/gi;
 
+const SYSTEM_ORDER = ["github", "postgres", "deploy", "filesystem"];
+const SYSTEM_LABELS = {
+  github: "GitHub",
+  postgres: "Postgres",
+  deploy: "Deploy",
+  filesystem: "Filesystem",
+};
+
 function siteBase() {
   const parts = location.pathname.split("/").filter(Boolean);
   if (parts[0] === "ops-mcp") return "/ops-mcp/";
@@ -42,75 +50,34 @@ function el(tag, props = {}, children = []) {
 }
 
 let tools = [];
-let activeSystem = "all";
 let scenarios = [];
 let activeScenario = null;
+let safetyDemos = [];
+let activeSafety = null;
+let safetyRevealed = false;
 
-function renderFilters() {
-  const host = document.getElementById("system-filters");
-  const systems = ["all", ...new Set(tools.map((t) => t.system))];
+function renderCatalog() {
+  const host = document.getElementById("catalog-groups");
   host.replaceChildren(
-    ...systems.map((sys) =>
-      el(
-        "button",
-        {
-          type: "button",
-          className: `filter-btn${activeSystem === sys ? " active" : ""}`,
-          role: "tab",
-          "aria-selected": String(activeSystem === sys),
-          onClick: () => {
-            activeSystem = sys;
-            renderFilters();
-            renderTools();
-          },
-        },
-        [sys]
-      )
-    )
-  );
-}
-
-function renderTools() {
-  const host = document.getElementById("tool-list");
-  const filtered = tools.filter((t) => activeSystem === "all" || t.system === activeSystem);
-  host.replaceChildren(
-    ...filtered.map((tool) => {
-      const inputs = el(
-        "ul",
-        { className: "kv" },
-        tool.inputs.map((inp) => {
-          const bits = [inp.type];
-          if (inp.required) bits.push("required");
-          if (inp.default !== undefined) bits.push(`default=${JSON.stringify(inp.default)}`);
-          const detail = `${bits.join(" · ")}${inp.description ? ` — ${inp.description}` : ""}`;
-          return el("li", {}, [
-            el("code", { text: inp.name }),
-            el("span", { text: detail }),
-          ]);
-        })
+    ...SYSTEM_ORDER.map((system) => {
+      const groupTools = tools.filter((t) => t.system === system);
+      if (!groupTools.length) return null;
+      const grid = el(
+        "div",
+        { className: "tool-grid" },
+        groupTools.map((tool) =>
+          el("article", { className: "tool-card" }, [
+            el("p", { className: "name", text: tool.name }),
+            el("p", { className: "can", text: tool.can || tool.summary }),
+            el("p", { className: "cannot", text: tool.cannot || "See safety notes in source." }),
+          ])
+        )
       );
-      const safety = el(
-        "ul",
-        { className: "chips" },
-        (tool.safety || []).map((s) => el("li", { text: s }))
-      );
-      const body = el("div", { className: "tool-body" }, [
-        el("h4", { text: "Inputs" }),
-        inputs,
-        el("h4", { text: "Output" }),
-        el("p", { className: "muted", text: tool.outputs }),
-        el("h4", { text: "Safety" }),
-        safety,
+      return el("div", { className: "catalog-group" }, [
+        el("h3", { className: "group-title", text: SYSTEM_LABELS[system] || system }),
+        grid,
       ]);
-      return el("details", { className: "tool" }, [
-        el("summary", {}, [
-          el("span", { className: "tool-name", text: tool.name }),
-          el("span", { className: "tool-system", text: tool.system }),
-          el("span", { className: "tool-summary", text: tool.summary }),
-        ]),
-        body,
-      ]);
-    })
+    }).filter(Boolean)
   );
 }
 
@@ -166,39 +133,91 @@ function runScenario() {
   out.classList.remove("hidden");
 }
 
-function renderEvents(payload) {
-  document.getElementById("events-caption").textContent = payload.caption;
-  const tbody = document.querySelector("#events-table tbody");
-  tbody.replaceChildren(
-    ...payload.events.map((ev) =>
-      el("tr", {}, [
-        el("td", { text: ev.ts }),
-        el("td", { text: ev.tool }),
-        el("td", {
-          className: ev.ok ? "ok-true" : "ok-false",
-          text: String(ev.ok),
-        }),
-        el("td", { text: `${ev.latency_ms} ms` }),
-        el("td", { text: ev.error || "—" }),
-      ])
+function paintSafety(demo, revealed) {
+  document.getElementById("safety-title").textContent = demo.title;
+  document.getElementById("safety-blurb").textContent = demo.blurb;
+  document.getElementById("safety-gate").textContent = demo.gate;
+  document.getElementById("safety-request").textContent = pretty(demo.request);
+  document.getElementById("safety-note").textContent = demo.note || "";
+
+  const tag = document.getElementById("safety-outcome-tag");
+  const response = document.getElementById("safety-response");
+  const panel = document.getElementById("safety-response-panel");
+  panel.classList.remove("flash-block", "flash-dry");
+
+  if (!revealed) {
+    tag.className = "tag neutral";
+    tag.textContent = "pending";
+    response.textContent = "// Run gate demo to see the server response";
+    return;
+  }
+
+  response.textContent = pretty(demo.response);
+  if (demo.outcome === "blocked") {
+    tag.className = "tag blocked";
+    tag.textContent = "blocked";
+    panel.classList.add("flash-block");
+  } else if (demo.outcome === "dry_run") {
+    tag.className = "tag dry_run";
+    tag.textContent = "dry_run";
+    panel.classList.add("flash-dry");
+  } else {
+    tag.className = "tag neutral";
+    tag.textContent = demo.outcome;
+  }
+}
+
+function selectSafety(demo) {
+  activeSafety = demo;
+  safetyRevealed = false;
+  document.querySelectorAll(".safety-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.id === demo.id);
+  });
+  document.getElementById("safety-run").disabled = false;
+  paintSafety(demo, false);
+}
+
+function renderSafetyTabs() {
+  const host = document.getElementById("safety-tabs");
+  host.replaceChildren(
+    ...safetyDemos.map((demo) =>
+      el(
+        "button",
+        {
+          type: "button",
+          className: "safety-tab",
+          role: "tab",
+          "data-id": demo.id,
+          onClick: () => selectSafety(demo),
+        },
+        [demo.tool]
+      )
     )
   );
+  if (safetyDemos[0]) selectSafety(safetyDemos[0]);
+}
+
+function runSafety() {
+  if (!activeSafety) return;
+  safetyRevealed = true;
+  paintSafety(activeSafety, true);
 }
 
 async function init() {
-  const [toolsPayload, setupText, playground, events] = await Promise.all([
+  const [toolsPayload, setupText, playground, safetyPayload] = await Promise.all([
     loadJson("tools.json"),
     fetch(`${BASE}data/setup.mcp.json.example`).then((r) => r.text()),
     loadJson("playground.json"),
-    loadJson("sample-events.json"),
+    loadJson("safety-demos.json"),
   ]);
 
   tools = toolsPayload.tools;
   scenarios = playground.scenarios;
-  renderFilters();
-  renderTools();
+  safetyDemos = safetyPayload.demos;
+
+  renderCatalog();
   renderScenarios();
-  renderEvents(events);
+  renderSafetyTabs();
 
   const setupCode = document.getElementById("setup-code");
   setupCode.textContent = setupText.trim();
@@ -212,9 +231,11 @@ async function init() {
     }, 1200);
   });
   document.getElementById("run-scenario").addEventListener("click", runScenario);
+  document.getElementById("safety-run").addEventListener("click", runSafety);
 }
 
 init().catch((err) => {
   console.error(err);
-  document.getElementById("tool-list").textContent = `Failed to load site data: ${err.message}`;
+  const host = document.getElementById("catalog-groups");
+  if (host) host.textContent = `Failed to load site data: ${err.message}`;
 });

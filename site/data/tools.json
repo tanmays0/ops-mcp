@@ -5,6 +5,8 @@
       "name": "github_list_issues",
       "system": "github",
       "summary": "List issues and PRs for a repository by state and labels.",
+      "can": "Read issue/PR summaries for a repo you authorize.",
+      "cannot": "Cannot invent tokens or bypass GitHub auth.",
       "inputs": [
         {"name": "owner", "type": "string", "required": true, "description": "GitHub org or user"},
         {"name": "repo", "type": "string", "required": true, "description": "Repository name"},
@@ -19,6 +21,8 @@
       "name": "github_create_issue",
       "system": "github",
       "summary": "Create a GitHub issue. Defaults to dry_run so nothing is written remotely.",
+      "can": "Preview or create issues when you explicitly disable dry_run.",
+      "cannot": "Will not POST by default — dry_run=true returns would_create only.",
       "inputs": [
         {"name": "owner", "type": "string", "required": true},
         {"name": "repo", "type": "string", "required": true},
@@ -34,6 +38,8 @@
       "name": "github_pr_diff_summary",
       "system": "github",
       "summary": "Summarize a pull request’s changed files and diff stats.",
+      "can": "Return file-level add/del/change stats for a PR.",
+      "cannot": "Does not return raw patches or full file contents.",
       "inputs": [
         {"name": "owner", "type": "string", "required": true},
         {"name": "repo", "type": "string", "required": true},
@@ -46,6 +52,8 @@
       "name": "postgres_query_readonly",
       "system": "postgres",
       "summary": "Run a parameterized SELECT (or WITH…SELECT) against Postgres.",
+      "can": "Run a single parameterized SELECT / WITH…SELECT.",
+      "cannot": "DDL/DML and multi-statement SQL are rejected before connect.",
       "inputs": [
         {"name": "sql", "type": "string", "required": true, "description": "Single SELECT / CTE"},
         {"name": "params", "type": "array", "required": false, "description": "Bound parameters"},
@@ -58,6 +66,8 @@
       "name": "postgres_explain",
       "system": "postgres",
       "summary": "EXPLAIN (FORMAT TEXT) a SELECT without ANALYZE.",
+      "can": "Show a text query plan for an allowlisted SELECT.",
+      "cannot": "No ANALYZE — the query is not executed for timings.",
       "inputs": [
         {"name": "sql", "type": "string", "required": true},
         {"name": "params", "type": "array", "required": false}
@@ -69,6 +79,8 @@
       "name": "deploy_status",
       "system": "deploy",
       "summary": "Latest GitHub Actions workflow run for a branch.",
+      "can": "Report the latest Actions run status/conclusion for a branch.",
+      "cannot": "Read-only — cannot trigger or cancel workflows.",
       "inputs": [
         {"name": "owner", "type": "string", "required": true},
         {"name": "repo", "type": "string", "required": true},
@@ -81,6 +93,8 @@
       "name": "fs_search",
       "system": "filesystem",
       "summary": "Literal substring search under allowlisted filesystem roots.",
+      "can": "Search literal substrings under OPS_MCP_FS_ROOTS.",
+      "cannot": "Cannot leave the allowlist via .. or symlink escapes.",
       "inputs": [
         {"name": "query", "type": "string", "required": true},
         {"name": "root", "type": "string", "required": false, "description": "Optional root within allowlist"},
@@ -93,6 +107,8 @@
       "name": "fs_read_file",
       "system": "filesystem",
       "summary": "Read a file under the sandbox with a hard size limit.",
+      "can": "Read UTF-8 file content under allowlisted roots (size-capped).",
+      "cannot": "Path traversal and symlink escapes fail closed.",
       "inputs": [
         {"name": "path", "type": "string", "required": true},
         {"name": "max_bytes", "type": "integer", "required": false, "description": "Capped by server max"}
